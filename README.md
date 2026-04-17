@@ -19,7 +19,7 @@ Mục tiêu của dự án:
 
 ### Video Demo
 
-[Xem video demo](data/demo/demo.mov)
+[Xem video demo (Google Drive)](https://drive.google.com/file/d/1u_1BCcVC6I9RGhoW4YXd5OzkPjnqYoVL/view?usp=drive_link)
 
 ## 2) Phạm vi và Trường hợp sử dụng
 Trong phạm vi hiện tại:
