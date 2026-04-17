@@ -125,9 +125,9 @@ python src/main.py --with-telegram-llm
 
 ### 9.3 Chế độ debug LLM (không mở camera)
 
-\`\`\`bash
+```bash
 python src/main.py --llm-debug
-\`\`\`
+```
 
 ## 10) Tương tác Telegram
 
@@ -151,7 +151,7 @@ Khi có cảnh báo, bot gửi ảnh kèm các nút bấm nhanh (inline buttons)
 
 ## 12) Cấu trúc thư mục
 
-\`\`\`text
+```text
 fire-detection-system/
 ├── src/
 │   ├── main.py                 # Điểm khởi đầu (Entry point)
@@ -171,4 +171,4 @@ fire-detection-system/
 ├── data/videos/                # Video mẫu
 ├── models/                     # Các mô hình YOLO
 └── requirements.txt
-\`\`\`
+```
