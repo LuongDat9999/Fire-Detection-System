@@ -53,3 +53,6 @@ fire_detection.log
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Large local demo assets
+*.mov

@@ -57,6 +57,12 @@ class StateManager:
         if self.mode != SystemState.SILENCED.value:
             self.mode = SystemState.MONITORING_INTENSELY.value
 
+    def resume_alerts(self) -> None:
+        """Resume alerts immediately by clearing SILENCED window."""
+        self.ignore_until = 0.0
+        if self.mode == SystemState.SILENCED.value:
+            self.mode = SystemState.NORMAL.value
+
     def is_alert_allowed(self) -> bool:
         self._refresh_state()
         if self.mode == SystemState.SILENCED.value and time.time() < self.ignore_until:

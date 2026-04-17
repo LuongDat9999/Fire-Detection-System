@@ -17,6 +17,10 @@ Mục tiêu của dự án:
 - Gửi cảnh báo có bằng chứng hình ảnh đến Telegram.
 - Cho phép người trực thao tác ngay trên tin nhắn: tạm dừng cảnh báo, yêu cầu theo dõi sát hơn, kiểm tra trạng thái.
 
+### Video Demo
+
+[Xem video demo](data/demo/demo.mov)
+
 ## 2) Phạm vi và Trường hợp sử dụng
 Trong phạm vi hiện tại:
 - Nhận diện nguy cơ cháy trên khung hình video bằng mô hình YOLOv26 được train từ 2 tập dữ liệu gồm hơn 15k hình ảnh được lấy trên roboflow với 2 class là: ["fire", "smoke"] với độ chính xác 89%.
@@ -172,3 +176,4 @@ fire-detection-system/
 ├── models/                     # Các mô hình YOLO
 └── requirements.txt
 ```
+

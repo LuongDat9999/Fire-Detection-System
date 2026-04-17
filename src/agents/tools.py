@@ -41,6 +41,11 @@ class FireTools:
 		self.state.set_mute(minutes)
 		return f"Da tat thong bao trong {minutes} phut."
 
+	def resume_monitoring(self):
+		"""Resume monitoring/alerts immediately, skipping mute timeout."""
+		self.state.resume_alerts()
+		return "Da tiep tuc theo doi ngay lap tuc (khong can cho het mute)."
+
 	def start_intense_monitoring(self):
 		"""Enable intensified monitoring mode with periodic reporting cadence."""
 		self.state.set_monitor()

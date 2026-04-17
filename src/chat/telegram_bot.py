@@ -51,6 +51,9 @@ class FireTelegramBot:
 
         if result.intent == Intent.SHOW_CAMERA:
             await self.tools.show_camera(chat_id)
+        elif result.intent == Intent.RESUME_MONITORING:
+            msg = self.tools.resume_monitoring()
+            await update.message.reply_text(f"{msg}")
         elif result.intent == Intent.MONITORING_INTENSELY:
             msg = self.tools.start_intense_monitoring()
             await update.message.reply_text(f"{msg}")
@@ -73,6 +76,7 @@ class FireTelegramBot:
         # Tùy biến phản hồi dựa trên data của nút
         action_map = {
             'mute_10': "✅ Đã tạm dừng cảnh báo 10 phút.",
+            'resume_now': "Đã tiếp tục theo dõi ngay.",
             'monitor_more': "⏳ Đang tăng cường theo dõi biến động diện tích lửa...",
             'emergency': "🚨 ĐÃ GỬI TÍN HIỆU CỨU HỎA KHẨN CẤP!"
         }
@@ -80,6 +84,8 @@ class FireTelegramBot:
         if self.tools is not None:
             if query.data == "mute_10":
                 action_map["mute_10"] = self.tools.mute_alerts(10)
+            elif query.data == "resume_now":
+                action_map["resume_now"] = self.tools.resume_monitoring()
             elif query.data == "monitor_more":
                 action_map["monitor_more"] = self.tools.start_intense_monitoring()
         
@@ -99,8 +105,8 @@ class FireTelegramBot:
         # 2. ĐỊNH NGHĨA CÁC NÚT BẤM (Đây là phần bạn đang thiếu)
         keyboard = [
             [
-                InlineKeyboardButton("✅ Phớt lờ (10p)", callback_data='mute_10'),
-                InlineKeyboardButton("⏳ Theo dõi thêm", callback_data='monitor_more')
+                InlineKeyboardButton("Phớt lờ (10p)", callback_data='mute_10'),
+                InlineKeyboardButton("Theo dõi thêm", callback_data='monitor_more')
             ],
             [InlineKeyboardButton("🚨 BÁO ĐỘNG THẬT", callback_data='emergency')]
         ]

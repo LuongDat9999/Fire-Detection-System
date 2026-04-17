@@ -20,6 +20,7 @@ for env_path in candidate_paths:
 
 class Intent(str, Enum):
     MUTE = "MUTE"
+    RESUME_MONITORING = "RESUME_MONITORING"
     SHOW_CAMERA = "SHOW_CAMERA"
     STATUS = "STATUS"
     MONITORING_INTENSELY = "MONITORING_INTENSELY"
@@ -69,9 +70,10 @@ class LLMBrain:
                             "Bạn là intent classifier cho hệ thống báo cháy. "
                             "Chỉ trả về DUY NHẤT 1 nhãn trong danh sách sau, "
                             "không thêm chữ nào khác: "
-                            "MUTE, SHOW_CAMERA, STATUS, MONITORING_INTENSELY, EMERGENCY, UNKNOWN. "
+                            "MUTE, RESUME_MONITORING, SHOW_CAMERA, STATUS, MONITORING_INTENSELY, EMERGENCY, UNKNOWN. "
                             "Quy tắc: \n"
                             "- Tắt báo động, im lặng, mute => MUTE\n"
+                            "- Tiếp tục theo dõi, bật lại cảnh báo, bỏ mute => RESUME_MONITORING\n"
                             "- Xem camera, gửi ảnh hiện tại, snapshot => SHOW_CAMERA\n"
                             "- Kiểm tra hệ thống, trạng thái, tình hình hiện tại => STATUS\n"
                             "- Theo dõi kỹ hơn, tăng cường giám sát => MONITORING_INTENSELY\n"
@@ -122,6 +124,22 @@ class LLMBrain:
             ]
         ):
             return Intent.MUTE
+        if any(
+            k in text
+            for k in [
+                "tiếp tục",
+                "tiep tuc",
+                "bật lại",
+                "bat lai",
+                "bỏ mute",
+                "bo mute",
+                "resume",
+                "unmute",
+                "theo dõi lại",
+                "theo doi lai",
+            ]
+        ):
+            return Intent.RESUME_MONITORING
         if any(k in text for k in ["camera", "ảnh", "hình", "snapshot", "xem"]):
             return Intent.SHOW_CAMERA
         if any(k in text for k in ["trạng thái", "status", "tình hình", "kiểm tra"]):
