@@ -6,6 +6,9 @@ import logging
 import platform
 import threading
 
+import cv2
+import numpy as np
+
 from core.system import FireDetectionSystem
 from core.state_manager import StateManager
 from chat.telegram_bot import FireTelegramBot
@@ -23,6 +26,56 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+
+class MockDetector:
+    """Small mock detector used for LLM debug without opening camera/video source."""
+
+    def __init__(self) -> None:
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.putText(
+            frame,
+            "LLM DEBUG FRAME",
+            (140, 240),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            (0, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        self.current_frame = frame
+
+
+def create_state_manager() -> StateManager:
+    """Build a shared runtime state manager with config-driven fire confirmation windows."""
+    config = load_config()
+    return StateManager(
+        fire_confirmation_seconds=config.fire_confirmation_seconds,
+        fire_absence_reset_seconds=config.fire_absence_reset_seconds,
+        trend_threshold_ratio=config.trend_threshold_ratio,
+    )
+
+
+def apply_cli_runtime_options(system: FireDetectionSystem, args: argparse.Namespace) -> None:
+    """Apply CLI overrides consistently for every runtime mode."""
+    if args.source:
+        system.config.video_source = args.source
+        logger.info("CLI source: %s", args.source)
+
+    if args.no_display:
+        system.show_display = False
+        logger.info("Display off")
+
+
+def create_vision_system(
+    args: argparse.Namespace,
+    state_manager: StateManager | None = None,
+    use_builtin_notifier: bool = True,
+) -> FireDetectionSystem:
+    """Create and configure the vision system from CLI/runtime dependencies."""
+    system = FireDetectionSystem(state_manager=state_manager, use_builtin_notifier=use_builtin_notifier)
+    apply_cli_runtime_options(system, args)
+    return system
 
 
 def create_telegram_llm_bot(detector=None, state_manager: StateManager | None = None) -> FireTelegramBot | None:
@@ -95,29 +148,15 @@ async def run_bot_with_vision_thread(args: argparse.Namespace) -> None:
     """Run Telegram bot in main asyncio loop and vision in background thread."""
     config = load_config()
     chat_id = config.notifications.telegram_chat_id
-    state_manager = StateManager()
+    state_manager = create_state_manager()
 
-    system = FireDetectionSystem(state_manager=state_manager, use_builtin_notifier=False)
-
-    if args.source:
-        system.config.video_source = args.source
-        logger.info("CLI source: %s", args.source)
-
-    if args.no_display:
-        system.show_display = False
-        logger.info("Display off")
+    system = create_vision_system(args, state_manager=state_manager, use_builtin_notifier=False)
 
     bot = create_telegram_llm_bot(detector=system.detector, state_manager=state_manager)
 
     if bot is None:
         logger.warning("Fallback to detector-only mode")
-        system = FireDetectionSystem()
-        if args.source:
-            system.config.video_source = args.source
-            logger.info("CLI source: %s", args.source)
-        if args.no_display:
-            system.show_display = False
-            logger.info("Display off")
+        system = create_vision_system(args)
         system.run()
         return
 
@@ -190,6 +229,26 @@ async def run_bot_with_vision_thread(args: argparse.Namespace) -> None:
             await bot.app.stop()
 
 
+def run_llm_debug_mode() -> None:
+    """Run Telegram LLM bot without camera by wiring mock runtime dependencies."""
+    config = load_config()
+    if not config.notifications.telegram_token:
+        raise ValueError("TELEGRAM_TOKEN is missing")
+
+    state_manager = create_state_manager()
+    mock_detector = MockDetector()
+    bot = create_telegram_llm_bot(
+        detector=mock_detector,
+        state_manager=state_manager,
+    )
+
+    if bot is None:
+        raise RuntimeError("Telegram LLM bot init failed in debug mode")
+
+    logger.info("[BOT] LLM debug mode is running (no camera)")
+    bot.app.run_polling(drop_pending_updates=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Fire Detection System")
     parser.add_argument(
@@ -208,18 +267,20 @@ def main():
         action="store_true",
         help="Run Telegram bot (LLM intent replies) alongside fire detection"
     )
+    parser.add_argument(
+        "--llm-debug",
+        action="store_true",
+        help="Run only Telegram LLM bot in debug mode using mock runtime (no camera)"
+    )
 
     args = parser.parse_args()
 
-    system = FireDetectionSystem()
-
-    if args.source:
-        system.config.video_source = args.source
-        logger.info(f"CLI source: {args.source}")
-
-    if args.no_display:
-        system.show_display = False
-        logger.info("Display off")
+    if args.llm_debug:
+        try:
+            run_llm_debug_mode()
+        except KeyboardInterrupt:
+            logger.info("Interrupted")
+        return
 
     if args.with_telegram_llm:
         try:
@@ -228,6 +289,7 @@ def main():
             logger.info("Interrupted")
         return
 
+    system = create_vision_system(args, state_manager=create_state_manager())
     system.run()
 
 if __name__ == "__main__":

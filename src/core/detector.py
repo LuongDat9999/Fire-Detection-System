@@ -4,6 +4,7 @@ import numpy as np
 from typing import Dict, Any
 import logging
 import os
+from ultralytics import YOLO
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +31,6 @@ class FireDetector:
     def _init_pytorch_model(self):
         """Initialize PyTorch model using Ultralytics YOLO."""
         try:
-            from ultralytics import YOLO
-            
             if not os.path.exists(self.model_path):
                 raise FileNotFoundError(f"Model not found: {self.model_path}")
             

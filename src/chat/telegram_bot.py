@@ -6,13 +6,22 @@ from agents.brain import Intent, LLMBrain
 from agents.tools import FireTools
 
 class FireTelegramBot:
-    def __init__(self, token, detector=None, state_manager=None):
+    def __init__(self, token, detector=None, state_manager=None, brain=None):
         self.app = Application.builder().token(token).build()
-        self.brain = LLMBrain() # Khởi tạo LLM
-        self.tools = FireTools(detector, state_manager, self) if state_manager is not None else None
+        self.brain = brain or LLMBrain()
+        self.detector = None
+        self.state_manager = None
+        self.tools = None
+        self.attach_runtime(detector, state_manager)
         self._add_handlers()
 
     def attach_runtime(self, detector, state_manager) -> None:
+        self.detector = detector
+        self.state_manager = state_manager
+        if detector is None or state_manager is None:
+            self.tools = None
+            return
+
         self.tools = FireTools(detector, state_manager, self)
 
     def _add_handlers(self):
@@ -78,17 +87,33 @@ class FireTelegramBot:
         await query.edit_message_caption(caption=f"Trạng thái: {result_text}")
 
     async def send_fire_alert(self, chat_id: str, frame: np.ndarray, details: str) -> None:
-        """Gửi ảnh cảnh báo cháy tới Telegram chat id cụ thể."""
+        """Gửi ảnh cảnh báo cháy kèm theo các nút bấm tương tác."""
         if not chat_id:
             return
 
+        # 1. Mã hóa ảnh frame sang bytes
         ok, jpeg_frame = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
         if not ok:
             return
 
-        await self.app.bot.send_photo(
-            chat_id=chat_id,
-            photo=jpeg_frame.tobytes(),
-            caption=details,
-            parse_mode="HTML",
-        )
+        # 2. ĐỊNH NGHĨA CÁC NÚT BẤM (Đây là phần bạn đang thiếu)
+        keyboard = [
+            [
+                InlineKeyboardButton("✅ Phớt lờ (10p)", callback_data='mute_10'),
+                InlineKeyboardButton("⏳ Theo dõi thêm", callback_data='monitor_more')
+            ],
+            [InlineKeyboardButton("🚨 BÁO ĐỘNG THẬT", callback_data='emergency')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        # 3. GỬI PHOTO KÈM REPLY_MARKUP
+        try:
+            await self.app.bot.send_photo(
+                chat_id=chat_id,
+                photo=jpeg_frame.tobytes(),
+                caption=f"🚨 <b>CẢNH BÁO CHÁY!</b>\n{details}\n\n<i>Chọn hành động bên dưới:</i>",
+                parse_mode="HTML",
+                reply_markup=reply_markup # Gắn các nút bấm vào đây
+            )
+        except Exception as e:
+            print(f"Lỗi khi gửi cảnh báo Telegram: {e}")

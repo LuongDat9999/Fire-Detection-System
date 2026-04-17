@@ -42,6 +42,11 @@ class SystemConfig:
     debug: bool = False
     video_source: str = os.getenv("VIDEO_SOURCE", "data/videos/warehouse.mp4")
     display_fps: bool = True
+    fire_confirmation_seconds: float = float(os.getenv("FIRE_CONFIRMATION_SECONDS", "3.5"))
+    fire_absence_reset_seconds: float = float(os.getenv("FIRE_ABSENCE_RESET_SECONDS", "1"))
+    alert_interval_normal_seconds: float = float(os.getenv("ALERT_INTERVAL_NORMAL_SECONDS", "3"))
+    alert_interval_monitoring_seconds: float = float(os.getenv("ALERT_INTERVAL_MONITORING_SECONDS", "10"))
+    trend_threshold_ratio: float = float(os.getenv("TREND_THRESHOLD_RATIO", "0.15"))
 
     inference: InferenceConfig = field(default_factory=InferenceConfig)
     notifications: NotificationConfig = field(default_factory=NotificationConfig)

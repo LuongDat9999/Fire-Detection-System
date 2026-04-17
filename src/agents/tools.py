@@ -42,20 +42,38 @@ class FireTools:
 		return f"Da tat thong bao trong {minutes} phut."
 
 	def start_intense_monitoring(self):
-		"""Enable intensified monitoring mode."""
+		"""Enable intensified monitoring mode with periodic reporting cadence."""
 		self.state.set_monitor()
-		return "Da chuyen sang che do giam sat chat che dien tich lua."
+		return (
+			"Da bat che do theo doi them: gui bao cao moi 10 giay/lần "
+			"(kem phan tich nhe: lua tang, giam hoac duy tri)."
+		)
 
 	def get_status(self):
 		snapshot = self.state.snapshot()
+		trend_text = self.analyze_fire_trend(snapshot.fire_trend, snapshot.fire_trend_ratio)
+		coverage_text = f"{snapshot.last_fire_coverage_ratio * 100:.2f}%"
 		if snapshot.state.value == "SILENCED" and snapshot.ignore_until is not None:
 			return (
 				f"Trang thai: {snapshot.state.value}. "
 				f"Mute den: {snapshot.ignore_until.isoformat()}. "
-				f"Dien tich lua gan nhat: {snapshot.last_fire_area:.0f}px2"
+				f"Dien tich lua gan nhat: {snapshot.last_fire_area:.0f}px2. "
+				f"Do phu khung hinh: {coverage_text}. "
+				f"Xu huong: {trend_text}"
 			)
 
 		return (
 			f"Trang thai: {snapshot.state.value}. "
-			f"Dien tich lua gan nhat: {snapshot.last_fire_area:.0f}px2"
+			f"Dien tich lua gan nhat: {snapshot.last_fire_area:.0f}px2. "
+			f"Do phu khung hinh: {coverage_text}. "
+			f"Xu huong: {trend_text}"
 		)
+
+	@staticmethod
+	def analyze_fire_trend(trend: str, ratio: float) -> str:
+		percent = abs(ratio) * 100
+		if trend == "spreading":
+			return f"Bao dong do - Lua lan ({percent:.1f}%)"
+		if trend == "decreasing":
+			return f"Tin tot - Lua tat dan ({percent:.1f}%)"
+		return f"Lua duy tri ({percent:.1f}%)"
