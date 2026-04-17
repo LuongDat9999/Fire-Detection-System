@@ -73,18 +73,18 @@ Quy tắc quan trọng:
 
 ## 7) Cài đặt
 
-\`\`\`bash
+```bash
 cd fire-detection-system
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-\`\`\`
+```
 
 ## 8) Cấu hình .env
 
 Tạo file .env trong thư mục fire-detection-system:
 
-\`\`\`env
+```env
 # Core
 MODEL_PATH=models/best_v3.pt
 VIDEO_SOURCE=data/videos/warehouse.mp4
@@ -107,21 +107,21 @@ TELEGRAM_CHAT_ID=your_chat_id
 # LLM (Groq)
 GROQ_API_KEY=your_groq_api_key
 MODEL_NAME=llama-3.1-8b-instant
-\`\`\`
+```
 
 ## 9) Cách chạy
 
 ### 9.1 Chỉ chạy Vision
 
-\`\`\`bash
+```bash
 python src/main.py
-\`\`\`
+```
 
 ### 9.2 Vision + Telegram LLM bot
 
-\`\`\`bash
+```bash
 python src/main.py --with-telegram-llm
-\`\`\`
+```
 
 ### 9.3 Chế độ debug LLM (không mở camera)
 
