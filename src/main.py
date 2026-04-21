@@ -21,7 +21,6 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname).1s | %(message)s",
     datefmt="%H:%M:%S",
     handlers=[
-        logging.FileHandler("fire_detection.log"),
         logging.StreamHandler()
     ]
 )

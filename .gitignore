@@ -45,7 +45,6 @@ Thumbs.db
 evidence/
 output/
 *.log
-fire_detection.log
 *.mp4
 *.avi
 
