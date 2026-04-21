@@ -74,7 +74,7 @@ class FireDetectionSystem:
         if self.config.notifications.telegram_token and self.config.notifications.telegram_chat_id:
             logger.info("Telegram notifier configured")
         else:
-            logger.warning("Telegram notifier missing TELEGRAM_TOKEN or TELEGRAM_CHAT_ID")
+            logger.warning("Thiếu TELEGRAM_TOKEN hoặc TELEGRAM_CHAT_ID cho notifier Telegram")
 
     def _init_drawer(self) -> None:
         self.drawer = FrameDrawer()
@@ -149,7 +149,7 @@ class FireDetectionSystem:
             confidence = detections[0].get("confidence", 0.0)
             now = time.time()
             if (not self.prev_has_fire) or (now - self.last_fire_log_time >= self.fire_log_interval):
-                logger.warning("FIRE conf=%.2f", confidence)
+                logger.warning("Phát hiện lửa conf=%.2f", confidence)
                 self.last_fire_log_time = now
         if confirmed_fire and has_fire:
             # Use annotated frame so outgoing alerts include drawn detection boxes.
@@ -182,19 +182,19 @@ class FireDetectionSystem:
         det_info = detections[0] if detections else {}
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = (
-            f"🔥 <b>FIRE DETECTED!</b>\n\n"
-            f"Time: {current_time}\n"
-            f"Confidence: {det_info.get('confidence', 0):.2%}\n"
+            f"🔥 <b>PHÁT HIỆN CHÁY!</b>\n\n"
+            f"Thời gian: {current_time}\n"
+            f"Độ tin cậy: {det_info.get('confidence', 0):.2%}\n"
         )
 
         if mode == SystemState.MONITORING_INTENSELY:
             trend_line = self._format_trend_line(trend_label, trend_ratio)
             coverage_percent = self.state_manager.last_fire_coverage_ratio * 100
             message += (
-                f"Area: {self.state_manager.last_fire_area:.0f}px2\n"
-                f"Coverage: {coverage_percent:.2f}% of frame\n"
-                f"Trend: {trend_line}\n"
-                f"Report interval: {int(alert_interval)}s\n"
+                f"Diện tích: {self.state_manager.last_fire_area:.0f}px2\n"
+                f"Độ phủ: {coverage_percent:.2f}% khung hình\n"
+                f"Xu hướng: {trend_line}\n"
+                f"Chu kỳ báo cáo: {int(alert_interval)}s\n"
             )
 
         self.state_manager.mark_alert_reported()
@@ -204,14 +204,14 @@ class FireDetectionSystem:
                 # Copy frame to avoid cross-thread mutation while async send is scheduled.
                 self.alert_callback(frame.copy(), message)
             except Exception as e:
-                logger.warning("Alert callback failed: %s", e)
+                logger.warning("Callback cảnh báo thất bại: %s", e)
 
         if self.use_builtin_notifier and self.config.notifications.send_frames:
             ok = self.notifier.send_alert(frame, message)
             if ok:
                 logger.info("Alert sent")
             else:
-                logger.warning("Alert send failed")
+                logger.warning("Gửi cảnh báo thất bại")
 
     def _get_alert_interval(self, mode: SystemState) -> float:
         if mode == SystemState.MONITORING_INTENSELY:
@@ -221,10 +221,10 @@ class FireDetectionSystem:
     def _format_trend_line(self, trend_label: str, trend_ratio: float) -> str:
         trend_percent = abs(trend_ratio) * 100
         if trend_label == "spreading":
-            return f"RED ALERT - Fire spreading (+{trend_percent:.1f}%)"
+            return f"CẢNH BÁO ĐỎ - Lửa lan rộng (+{trend_percent:.1f}%)"
         if trend_label == "decreasing":
-            return f"Good news - Fire easing (-{trend_percent:.1f}%)"
-        return f"Maintaining ({trend_percent:.1f}%)"
+            return f"Tin tốt - Lửa giảm dần (-{trend_percent:.1f}%)"
+        return f"Duy trì ({trend_percent:.1f}%)"
 
     def _calculate_fps(self) -> float:
         self.fps_counter += 1

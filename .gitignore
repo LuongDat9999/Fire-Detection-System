@@ -42,8 +42,6 @@ wheels/
 Thumbs.db
 
 # Project specific
-evidence/
-output/
 *.log
 *.mp4
 *.avi

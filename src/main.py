@@ -83,7 +83,7 @@ def create_telegram_llm_bot(detector=None, state_manager: StateManager | None = 
     token = config.notifications.telegram_token
 
     if not token:
-        logger.warning("Telegram LLM bot skipped: TELEGRAM_TOKEN is missing")
+        logger.warning("Bỏ qua bot Telegram LLM: thiếu TELEGRAM_TOKEN")
         return None
 
     try:
@@ -91,7 +91,7 @@ def create_telegram_llm_bot(detector=None, state_manager: StateManager | None = 
         ok, message = brain.check_connection()
         logger.info("LLM check: %s", message)
         if not ok:
-            logger.warning("Telegram LLM bot skipped: Groq connection failed")
+            logger.warning("Bỏ qua bot Telegram LLM: kết nối Groq thất bại")
             return None
 
         return FireTelegramBot(token, detector=detector, state_manager=state_manager)
@@ -154,7 +154,7 @@ async def run_bot_with_vision_thread(args: argparse.Namespace) -> None:
     bot = create_telegram_llm_bot(detector=system.detector, state_manager=state_manager)
 
     if bot is None:
-        logger.warning("Fallback to detector-only mode")
+        logger.warning("Chuyển về chế độ chỉ chạy detector")
         system = create_vision_system(args)
         system.run()
         return
@@ -163,7 +163,7 @@ async def run_bot_with_vision_thread(args: argparse.Namespace) -> None:
     if platform.system() == "Darwin" and not args.no_display:
         bot_loop = start_telegram_bot_in_background(bot)
         if bot_loop is None:
-            logger.warning("Fallback to detector-only mode (background bot failed)")
+            logger.warning("Chuyển về chế độ chỉ chạy detector (bot nền lỗi)")
             system.use_builtin_notifier = True
             system.run()
             return
@@ -177,7 +177,7 @@ async def run_bot_with_vision_thread(args: argparse.Namespace) -> None:
             def _on_done(done_future):
                 exc = done_future.exception()
                 if exc:
-                    logger.warning("Async Telegram alert failed: %s", exc)
+                    logger.warning("Gửi cảnh báo Telegram bất đồng bộ thất bại: %s", exc)
 
             future.add_done_callback(_on_done)
 
@@ -201,7 +201,7 @@ async def run_bot_with_vision_thread(args: argparse.Namespace) -> None:
         def _on_done(done_future):
             exc = done_future.exception()
             if exc:
-                logger.warning("Async Telegram alert failed: %s", exc)
+                logger.warning("Gửi cảnh báo Telegram bất đồng bộ thất bại: %s", exc)
 
         future.add_done_callback(_on_done)
 
